@@ -312,7 +312,7 @@ pub struct Initialize<'info> {
     #[account(signer)]
     pub creator_authority: AccountInfo<'info>,
     #[account(zero, rent_exempt = enforce)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
 
     pub reserve_pda: AccountInfo<'info>,
     #[account(mut, rent_exempt = enforce)]
@@ -320,14 +320,14 @@ pub struct Initialize<'info> {
     #[account(mut, rent_exempt = enforce)]
     pub validator_list: AccountInfo<'info>,
 
-    pub msol_mint: CpiAccount<'info, Mint>,
+    pub msol_mint: Account<'info, Mint>,
 
     pub operational_sol_account: AccountInfo<'info>,
 
     pub liq_pool: LiqPoolInitialize<'info>,
 
     // treasury_sol_account: AccountInfo<'info>,
-    treasury_msol_account: CpiAccount<'info, TokenAccount>,
+    treasury_msol_account: Account<'info, TokenAccount>,
 
     pub clock: Sysvar<'info, Clock>,
     pub rent: Sysvar<'info, Rent>,
@@ -349,9 +349,9 @@ pub struct InitializeData {
 //-----------------------------------------------------
 #[derive(Accounts)]
 pub struct LiqPoolInitialize<'info> {
-    pub lp_mint: CpiAccount<'info, Mint>,
+    pub lp_mint: Account<'info, Mint>,
     pub sol_leg_pda: AccountInfo<'info>,
-    pub msol_leg: CpiAccount<'info, TokenAccount>,
+    pub msol_leg: Account<'info, TokenAccount>,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, AnchorSerialize, AnchorDeserialize)]
@@ -366,7 +366,7 @@ pub struct LiqPoolInitializeData {
 #[derive(Accounts)]
 pub struct ChangeAuthority<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(signer)]
     pub admin_authority: AccountInfo<'info>,
 }
@@ -383,18 +383,18 @@ pub struct ChangeAuthorityData {
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
-    pub lp_mint: CpiAccount<'info, Mint>,
+    pub lp_mint: Account<'info, Mint>,
 
     pub lp_mint_authority: AccountInfo<'info>,
 
     // msol_mint to be able to compute current msol value in liq_pool
     // not needed because we use memorized value
-    // pub msol_mint: CpiAccount<'info, Mint>,
+    // pub msol_mint: Account<'info, Mint>,
     // liq_pool_msol_leg to be able to compute current msol value in liq_pool
-    pub liq_pool_msol_leg: CpiAccount<'info, TokenAccount>,
+    pub liq_pool_msol_leg: Account<'info, TokenAccount>,
 
     #[account(mut)]
     // seeds = [&state.to_account_info().key.to_bytes()[..32], LiqPool::SOL_ACCOUNT_SEED], bump = state.liq_pool.sol_account_bump_seed)]
@@ -407,7 +407,7 @@ pub struct AddLiquidity<'info> {
 
     // #[check_owner_program("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")]
     #[account(mut)] // , owner = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")]
-    pub mint_to: CpiAccount<'info, TokenAccount>,
+    pub mint_to: Account<'info, TokenAccount>,
 
     // #[account(address = "11111111111111111111111111111111")]
     // #[check_address("11111111111111111111111111111111")]
@@ -421,14 +421,14 @@ pub struct AddLiquidity<'info> {
 #[derive(Accounts)]
 pub struct RemoveLiquidity<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
-    pub lp_mint: CpiAccount<'info, Mint>,
+    pub lp_mint: Account<'info, Mint>,
 
-    // pub msol_mint: CpiAccount<'info, Mint>, // not needed anymore
+    // pub msol_mint: Account<'info, Mint>, // not needed anymore
     #[account(mut)]
-    pub burn_from: CpiAccount<'info, TokenAccount>,
+    pub burn_from: Account<'info, TokenAccount>,
     #[account(signer)]
     pub burn_from_authority: AccountInfo<'info>,
 
@@ -436,13 +436,13 @@ pub struct RemoveLiquidity<'info> {
     pub transfer_sol_to: AccountInfo<'info>,
 
     #[account(mut)]
-    pub transfer_msol_to: CpiAccount<'info, TokenAccount>,
+    pub transfer_msol_to: Account<'info, TokenAccount>,
 
     // legs
     #[account(mut)]
     pub liq_pool_sol_leg_pda: AccountInfo<'info>,
     #[account(mut)]
-    pub liq_pool_msol_leg: CpiAccount<'info, TokenAccount>,
+    pub liq_pool_msol_leg: Account<'info, TokenAccount>,
     pub liq_pool_msol_leg_authority: AccountInfo<'info>,
 
     pub system_program: AccountInfo<'info>,
@@ -452,16 +452,16 @@ pub struct RemoveLiquidity<'info> {
 #[derive(Accounts)]
 pub struct Deposit<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
-    pub msol_mint: CpiAccount<'info, Mint>,
+    pub msol_mint: Account<'info, Mint>,
 
     #[account(mut)]
     pub liq_pool_sol_leg_pda: AccountInfo<'info>,
 
     #[account(mut)]
-    pub liq_pool_msol_leg: CpiAccount<'info, TokenAccount>,
+    pub liq_pool_msol_leg: Account<'info, TokenAccount>,
     pub liq_pool_msol_leg_authority: AccountInfo<'info>,
 
     #[account(mut)]
@@ -471,7 +471,7 @@ pub struct Deposit<'info> {
     pub transfer_from: AccountInfo<'info>,
 
     #[account(mut)]
-    pub mint_to: CpiAccount<'info, TokenAccount>,
+    pub mint_to: Account<'info, TokenAccount>,
 
     pub msol_mint_authority: AccountInfo<'info>,
 
@@ -483,7 +483,7 @@ pub struct Deposit<'info> {
 #[derive(Accounts)]
 pub struct DepositStakeAccount<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
     pub validator_list: AccountInfo<'info>,
@@ -491,7 +491,7 @@ pub struct DepositStakeAccount<'info> {
     pub stake_list: AccountInfo<'info>,
 
     #[account(mut)]
-    pub stake_account: CpiAccount<'info, StakeWrapper>,
+    pub stake_account: Account<'info, StakeWrapper>,
     #[account(signer)]
     pub stake_authority: AccountInfo<'info>,
     #[account(mut)]
@@ -500,9 +500,9 @@ pub struct DepositStakeAccount<'info> {
     pub rent_payer: AccountInfo<'info>,
 
     #[account(mut)]
-    pub msol_mint: CpiAccount<'info, Mint>,
+    pub msol_mint: Account<'info, Mint>,
     #[account(mut)]
-    pub mint_to: CpiAccount<'info, TokenAccount>,
+    pub mint_to: Account<'info, TokenAccount>,
 
     pub msol_mint_authority: AccountInfo<'info>,
 
@@ -518,21 +518,21 @@ pub struct DepositStakeAccount<'info> {
 #[derive(Accounts)]
 pub struct LiquidUnstake<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
-    pub msol_mint: CpiAccount<'info, Mint>,
+    pub msol_mint: Account<'info, Mint>,
 
     #[account(mut)]
     pub liq_pool_sol_leg_pda: AccountInfo<'info>,
 
     #[account(mut)]
-    pub liq_pool_msol_leg: CpiAccount<'info, TokenAccount>,
+    pub liq_pool_msol_leg: Account<'info, TokenAccount>,
     #[account(mut)]
     pub treasury_msol_account: AccountInfo<'info>,
 
     #[account(mut)]
-    pub get_msol_from: CpiAccount<'info, TokenAccount>,
+    pub get_msol_from: Account<'info, TokenAccount>,
     #[account(signer)]
     pub get_msol_from_authority: AccountInfo<'info>, //burn_msol_from owner or delegate_authority
 
@@ -546,7 +546,7 @@ pub struct LiquidUnstake<'info> {
 #[derive(Accounts)]
 pub struct AddValidator<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(signer)]
     pub manager_authority: AccountInfo<'info>,
     #[account(mut)]
@@ -568,7 +568,7 @@ pub struct AddValidator<'info> {
 #[derive(Accounts)]
 pub struct RemoveValidator<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(signer)]
     pub manager_authority: AccountInfo<'info>,
     #[account(mut)]
@@ -583,7 +583,7 @@ pub struct RemoveValidator<'info> {
 #[derive(Accounts)]
 pub struct SetValidatorScore<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(signer)]
     pub manager_authority: AccountInfo<'info>,
     #[account(mut)]
@@ -593,7 +593,7 @@ pub struct SetValidatorScore<'info> {
 #[derive(Accounts)]
 pub struct ConfigValidatorSystem<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(signer)]
     pub manager_authority: AccountInfo<'info>,
 }
@@ -601,19 +601,19 @@ pub struct ConfigValidatorSystem<'info> {
 #[derive(Accounts)]
 pub struct OrderUnstake<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
     #[account(mut)]
-    pub msol_mint: CpiAccount<'info, Mint>,
+    pub msol_mint: Account<'info, Mint>,
 
     // Note: Ticket beneficiary is burn_msol_from.owner
     #[account(mut)]
-    pub burn_msol_from: CpiAccount<'info, TokenAccount>,
+    pub burn_msol_from: Account<'info, TokenAccount>,
 
     #[account(signer)]
     pub burn_msol_authority: AccountInfo<'info>, // burn_msol_from acc must be pre-delegated with enough amount to this key or input owner signature here
 
     #[account(zero, rent_exempt = enforce)]
-    pub new_ticket_account: ProgramAccount<'info, TicketAccountData>,
+    pub new_ticket_account: Account<'info, TicketAccountData>,
 
     pub clock: Sysvar<'info, Clock>,
     pub rent: Sysvar<'info, Rent>,
@@ -623,12 +623,12 @@ pub struct OrderUnstake<'info> {
 #[derive(Accounts)]
 pub struct Claim<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(mut)]
     pub reserve_pda: AccountInfo<'info>,
 
     #[account(mut)]
-    pub ticket_account: ProgramAccount<'info, TicketAccountData>,
+    pub ticket_account: Account<'info, TicketAccountData>,
 
     #[account(mut)]
     pub transfer_sol_to: AccountInfo<'info>,
@@ -641,7 +641,7 @@ pub struct Claim<'info> {
 #[derive(Accounts)]
 pub struct StakeReserve<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
     #[account(mut)]
     pub validator_list: AccountInfo<'info>,
     #[account(mut)]
@@ -651,7 +651,7 @@ pub struct StakeReserve<'info> {
     #[account(mut)]
     pub reserve_pda: AccountInfo<'info>,
     #[account(mut)]
-    pub stake_account: CpiAccount<'info, StakeWrapper>, // must be uninitialized
+    pub stake_account: Account<'info, StakeWrapper>, // must be uninitialized
     pub stake_deposit_authority: AccountInfo<'info>,
 
     pub clock: Sysvar<'info, Clock>,
@@ -666,17 +666,17 @@ pub struct StakeReserve<'info> {
 #[derive(Accounts)]
 pub struct UpdateCommon<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
     #[account(mut)]
     pub stake_list: AccountInfo<'info>,
     #[account(mut)]
-    pub stake_account: CpiAccount<'info, StakeWrapper>,
+    pub stake_account: Account<'info, StakeWrapper>,
     pub stake_withdraw_authority: AccountInfo<'info>, // for getting non delegated SOLs
     #[account(mut)]
     pub reserve_pda: AccountInfo<'info>, // all non delegated SOLs (if some attacker transfers it to stake) are sent to reserve_pda
 
     #[account(mut)]
-    pub msol_mint: CpiAccount<'info, Mint>,
+    pub msol_mint: Account<'info, Mint>,
     pub msol_mint_authority: AccountInfo<'info>,
     #[account(mut)]
     pub treasury_msol_account: AccountInfo<'info>, //receives 1% from staking rewards protocol fee
@@ -736,7 +736,7 @@ impl<'info> DerefMut for UpdateDeactivated<'info> {
 #[derive(Accounts)]
 pub struct SetLpParams<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(signer)]
     pub admin_authority: AccountInfo<'info>,
 }
@@ -756,7 +756,7 @@ pub struct ConfigMarinadeParams {
 #[derive(Accounts)]
 pub struct ConfigMarinade<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(signer)]
     pub admin_authority: AccountInfo<'info>,
 }
@@ -764,7 +764,7 @@ pub struct ConfigMarinade<'info> {
 #[derive(Accounts)]
 pub struct DeactivateStake<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
     // Readonly. For stake delta calculation
     pub reserve_pda: AccountInfo<'info>,
     #[account(mut)]
@@ -772,7 +772,7 @@ pub struct DeactivateStake<'info> {
     #[account(mut)]
     pub stake_list: AccountInfo<'info>,
     #[account(mut)]
-    pub stake_account: CpiAccount<'info, StakeWrapper>,
+    pub stake_account: Account<'info, StakeWrapper>,
     pub stake_deposit_authority: AccountInfo<'info>,
     #[account(mut, signer)]
     pub split_stake_account: AccountInfo<'info>,
@@ -791,7 +791,7 @@ pub struct DeactivateStake<'info> {
 #[derive(Accounts)]
 pub struct EmergencyUnstake<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Account<'info, State>,
     #[account(signer)]
     pub validator_manager_authority: AccountInfo<'info>,
     #[account(mut)]
@@ -799,7 +799,7 @@ pub struct EmergencyUnstake<'info> {
     #[account(mut)]
     pub stake_list: AccountInfo<'info>,
     #[account(mut)]
-    pub stake_account: CpiAccount<'info, StakeWrapper>,
+    pub stake_account: Account<'info, StakeWrapper>,
     pub stake_deposit_authority: AccountInfo<'info>,
 
     pub clock: Sysvar<'info, Clock>,
@@ -810,15 +810,15 @@ pub struct EmergencyUnstake<'info> {
 #[derive(Accounts)]
 pub struct MergeStakes<'info> {
     #[account(mut)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
     #[account(mut)]
     pub stake_list: AccountInfo<'info>,
     #[account(mut)]
     pub validator_list: AccountInfo<'info>,
     #[account(mut)]
-    pub destination_stake: CpiAccount<'info, StakeWrapper>,
+    pub destination_stake: Account<'info, StakeWrapper>,
     #[account(mut)]
-    pub source_stake: CpiAccount<'info, StakeWrapper>,
+    pub source_stake: Account<'info, StakeWrapper>,
     pub stake_deposit_authority: AccountInfo<'info>,
     pub stake_withdraw_authority: AccountInfo<'info>,
     #[account(mut)]

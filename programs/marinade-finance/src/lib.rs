@@ -26,6 +26,7 @@ pub mod validator_system;
 
 pub use state::State;
 
+
 /// The static program ID
 pub static ID: Pubkey = Pubkey::new_from_array([
     5, 69, 227, 101, 190, 242, 113, 173, 117, 53, 3, 103, 86, 93, 164, 13, 163, 54, 220, 28, 135,
@@ -242,6 +243,7 @@ pub mod marinade_finance {
             .process(destination_stake_index, source_stake_index, validator_index)
     }
 }
+pub use marinade_finance::*;
 
 #[cfg(not(feature = "no-entrypoint"))]
 pub fn test_entry(program_id: &Pubkey, accounts: &[AccountInfo], ix_data: &[u8]) -> ProgramResult {
